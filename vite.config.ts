@@ -240,7 +240,7 @@ export default defineConfig({
   resolve: {
     alias: {
       $lib: path.resolve("./src/lib"),
-      $nodes: path.resolve("../src/nodes"),
+      $nodes: path.resolve("./nodes"),
     },
     // Force all shared deps to resolve from ui/node_modules so files
     // outside the project root (src/nodes/*/ui/) find them correctly.
