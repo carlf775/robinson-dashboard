@@ -16,7 +16,7 @@
 
 <nav class="w-12 shrink-0 flex flex-col items-center border-r border-border bg-zinc-900">
   <div class="h-12 shrink-0 flex items-center justify-center border-b border-border w-full">
-    <img src="/trademark.png" alt="Deepvis" class="w-6 object-contain" />
+    <img src="{import.meta.env.BASE_URL + 'trademark.png'}" alt="Deepvis" class="w-6 object-contain" onerror={() => {}} />
   </div>
   <div class="flex flex-col items-center gap-1 pt-3">
     <button

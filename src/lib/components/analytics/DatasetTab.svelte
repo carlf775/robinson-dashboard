@@ -82,14 +82,14 @@
   async function loadSam3() {
     loadingSam3 = true; errorSam3 = '';
     try {
-      const r = await fetch('/sam3_results.json');
+      const r = await fetch(import.meta.env.BASE_URL + 'sam3_results.json');
       if (!r.ok) throw new Error('Not found');
       sam3 = await r.json();
     } catch (e) {
       errorSam3 = e instanceof Error ? e.message : 'Failed';
     } finally { loadingSam3 = false; }
     try {
-      const r2 = await fetch('/sam3_samples.json');
+      const r2 = await fetch(import.meta.env.BASE_URL + 'sam3_samples.json');
       if (r2.ok) annotatedSamples = await r2.json();
     } catch { /* optional */ }
   }
@@ -97,7 +97,7 @@
   async function loadAd() {
     loadingAd = true; errorAd = '';
     try {
-      const r = await fetch('/ad_sam3_results.json');
+      const r = await fetch(import.meta.env.BASE_URL + 'ad_sam3_results.json');
       if (!r.ok) throw new Error('AD stats not computed yet — run compute_ad_sam3.py');
       ad = await r.json();
     } catch (e) {
