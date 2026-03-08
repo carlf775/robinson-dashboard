@@ -237,11 +237,11 @@
       <div class="lb-pair">
         <div class="lb-pair-col">
           <div class="lb-pair-label">Original</div>
-          <img src="/api/dataset-image?path={encodeURIComponent(lightboxSample.path)}" alt="original" class="lb-img"/>
+          <img src="{import.meta.env.BASE_URL}parts/{lightboxSample.key}.jpg" alt="original" class="lb-img"/>
         </div>
         <div class="lb-pair-col">
           <div class="lb-pair-label">SAM3 Segmentation</div>
-          <img src="/api/annotated-image?key={encodeURIComponent(lightboxSample.key)}&v=3" alt="annotated" class="lb-img"/>
+          <img src="{import.meta.env.BASE_URL}annotated/{lightboxSample.key}.jpg" alt="annotated" class="lb-img"/>
         </div>
       </div>
       <div class="lb-info">
@@ -269,7 +269,7 @@
     <button class="lb-nav lb-nav-prev" onclick={(e) => { e.stopPropagation(); navigateAd(-1); }} aria-label="Previous">&#8592;</button>
     <div class="lb-inner lb-wide" onclick={(e) => e.stopPropagation()}>
       <img
-        src="/api/ad-image?key={encodeURIComponent(lightboxAdSample.key)}"
+        src="{import.meta.env.BASE_URL}ad-annotated/{lightboxAdSample.key}.jpg"
         alt={lightboxAdSample.key}
         class="lb-img"
       />
@@ -475,8 +475,8 @@
                   {#each filteredSamples as sample}
                     <button class="gallery-card sam3-gallery-card" onclick={() => (lightboxSample = sample)}>
                       <div class="gallery-img-wrap gallery-img-pair">
-                        <img src="/api/dataset-image?path={encodeURIComponent(sample.path)}" alt="original" loading="lazy" class="gallery-half"/>
-                        <img src="/api/annotated-image?key={encodeURIComponent(sample.key)}&v=3" alt="annotated" loading="lazy" class="gallery-half"/>
+                        <img src="{import.meta.env.BASE_URL}parts/{sample.key}.jpg" alt="original" loading="lazy" class="gallery-half"/>
+                        <img src="{import.meta.env.BASE_URL}annotated/{sample.key}.jpg" alt="annotated" loading="lazy" class="gallery-half"/>
                       </div>
                       <div class="gallery-meta">
                         <span class="gallery-key">{sample.key.slice(-8)}</span>
@@ -637,7 +637,7 @@
                 <button class="gallery-card ad-gallery-card" onclick={() => (lightboxAdSample = sample)}>
                   <div class="gallery-img-wrap">
                     <img
-                      src="/api/ad-image?key={encodeURIComponent(sample.key)}"
+                      src="{import.meta.env.BASE_URL}ad-annotated/{sample.key}.jpg"
                       alt={sample.key}
                       loading="lazy"
                     />
