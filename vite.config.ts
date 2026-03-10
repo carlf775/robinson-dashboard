@@ -234,7 +234,7 @@ function datasetImagePlugin(): Plugin {
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: process.env.NODE_ENV === 'production' ? '/avk-dashboard/' : '/',
+  base: process.env.NODE_ENV === 'production' ? '/robinson-dashboard/' : '/',
   plugins: [tailwindcss(), svelte(), emailPlugin(), sam3Plugin(), datasetStatsPlugin(), datasetImagePlugin()],
   publicDir: 'static',
   resolve: {

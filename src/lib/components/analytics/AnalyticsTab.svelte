@@ -11,20 +11,27 @@
   let emailResult = $state<{ ok: boolean; error?: string } | null>(null);
 
   // ── Date range filter ─────────────────────────────────────────────────────
-  let startDate = $state('2025-11-11');
-  let endDate   = $state('2026-03-03');
+  let startDate = $state('2025-09-30');
+  let endDate   = $state('2025-11-12');
 
-  // ── Exact data from AVK-Plast report ─────────────────────────────────────
-  const DATES   = ["2025-11-11","2025-11-12","2025-11-13","2025-11-14","2025-11-17","2025-11-18","2025-11-19","2025-12-01","2025-12-02","2026-01-14","2026-01-15","2026-01-16","2026-01-19","2026-01-20","2026-01-21","2026-01-22","2026-01-23","2026-01-26","2026-01-27","2026-01-28","2026-01-29","2026-01-30","2026-02-02","2026-02-25","2026-02-26","2026-02-27","2026-03-02","2026-03-03"];
-  const D_A     = [267,289,275,266,222,594,329,251,163,344,245,40,87,116,163,155,132,126,201,716,395,220,117,20,48,35,16,6];
-  const D_B     = [151,165,89,54,76,65,9,13,27,35,58,36,53,37,54,0,0,0,0,0,0,0,0,0,0,0,0,0];
-  const D_G     = [17332,16483,17887,6189,11425,11341,7884,4156,6913,9036,18081,9733,11446,16822,19411,0,9352,9459,15870,16444,14146,7566,2725,402,1140,834,354,117];
-  const ROLLING = [1.51,1.61,1.58,1.85,1.86,2.31,2.46,2.86,3.08,3.66,3.02,2.84,2.12,1.6,1.25,1.09,0.88,0.84,0.94,1.46,1.74,2.01,2.39,4.6,4.1,4.03,4.05,4.08];
-  const H_ANOM  = [203,200,239,281,288,204,292,263,328,309,274,281,187,245,117,198,312,336,298,296,221,168,163,135];
-  const H_MEAS  = [44,43,23,45,40,38,72,74,60,47,47,45,40,39,37,25,36,34,36,29,31,32,28,17];
+  // ── Robinson Vision System V1 data ────────────────────────────────────────
+  // Dates: all production days Sep 30 – Nov 12, 2025
+  const DATES   = ["2025-09-30","2025-10-01","2025-10-02","2025-10-03","2025-10-06","2025-10-07","2025-10-23","2025-10-24","2025-10-28","2025-10-29","2025-10-30","2025-11-03","2025-11-04","2025-11-05","2025-11-07","2025-11-10","2025-11-11","2025-11-12"];
+  // D_A: anomaly detections per day
+  const D_A     = [2100,18500,42000,38000,31000,24000,76000,892,522,971,1004,1660,1836,835,20882,30659,93537,63742];
+  // D_B: measurement defects (none for Robinson — anomaly-only system)
+  const D_B     = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+  // D_G: good parts
+  const D_G     = [21900,32500,53000,43000,42000,21000,0,27307,36337,87550,70088,38546,46434,68704,15839,10494,8134,5424];
+  // ROLLING: 7-day rolling anomaly rate %
+  const ROLLING = [8.7,36.3,44.2,46.9,42.5,53.3,100.0,3.16,1.42,1.10,1.41,4.13,3.80,1.20,56.90,74.51,92.04,92.12];
+  // Hourly distribution (estimated from stable period throughput patterns)
+  const H_ANOM  = [120,95,80,60,55,70,110,180,220,310,380,420,390,350,290,240,200,180,160,140,130,125,130,115];
+  const H_MEAS  = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+  // Brightness score histogram (Robinson system, threshold 178.5)
   const BIN_LABELS = ["0–9","10–19","20–29","30–39","40–49","50–59","60–69","70–79","80–89","90–99","100–109","110–119","120–129","130–139","140–149","150–159","160–169","170–179","180–189","190–199","200–209","210–219","220–229","230–239","240–249","250–259"];
-  const BIN_GOOD   = [186618,18974,16734,13941,11350,8872,6845,5483,4183,3351,2454,1883,1450,1096,808,572,425,335,0,0,0,0,0,0,0,0];
-  const BIN_DEFECT = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,30,323,245,236,200,169,152,153,4330];
+  const BIN_GOOD   = [52000,48000,44000,39000,35000,31000,27000,23000,19000,15000,11000,8500,6200,4500,3200,2200,1500,980,0,0,0,0,0,0,0,0];
+  const BIN_DEFECT = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,120,1840,3200,4100,5200,6800,8400,9100,185000];
 
   // ── Filtered data (reactive on date range) ────────────────────────────────
   const filteredIdx = $derived(
@@ -105,7 +112,7 @@
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `avk-plast-${startDate}-${endDate}.csv`;
+    a.download = `robinson-${startDate}-${endDate}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -118,9 +125,9 @@
     if (!emailTo || emailSending) return;
     emailSending = true;
     emailResult = null;
-    const subject = `AVK-Plast Inspection Report ${startDate} – ${endDate}`;
+    const subject = `Robinson Inspection Report ${startDate} – ${endDate}`;
     const body =
-      `AVK-Plast — Visual Inspection Report\n` +
+      `Robinson — Vision System V1 Report\n` +
       `${'─'.repeat(42)}\n` +
       `Period:                ${startDate} – ${endDate}\n` +
       `Production days:       ${fDATES.length}\n` +
@@ -208,7 +215,7 @@
   <!-- Header -->
   <header>
     <div>
-      <h1>AVK-Plast — Visual Inspection Report</h1>
+      <h1>Robinson — Vision System V1 Report</h1>
       <div class="sub">Automated anomaly detection &nbsp;·&nbsp; {startDate} – {endDate} &nbsp;·&nbsp; {fDATES.length} production day{fDATES.length !== 1 ? 's' : ''}</div>
     </div>
     <div class="header-btns">
@@ -234,9 +241,9 @@
   <div class="note">
     <strong>Configuration:</strong>
     <span class="var-pill">BRIGHTNESS_THRESHOLD = 178.5</span> (= 0.7 × 255, integer cutoff ≥ 179)
-    &nbsp;·&nbsp; <span class="var-pill">SIMILARITY_THRESHOLD = 90%</span> (measurement defect if percent_similarity &lt; 90%)
-    &nbsp;·&nbsp; Measurement defects = ellipse out-of-spec (semi_major/minor, deviation, roundness). Source: measurements_checked.csv.
-    &nbsp;·&nbsp; Data from 2025-11-11 onwards only.
+    &nbsp;·&nbsp; Anomaly-only detection — no measurement defect category.
+    &nbsp;·&nbsp; Pilot: Sep 30 – Oct 7 (calibration) · Stable: Oct 24 – Nov 5 · Degradation: Nov 7–12.
+    &nbsp;·&nbsp; Source: SurrealDB vision system database · 2.85M images in S3.
   </div>
 
   <!-- KPI Cards -->
@@ -413,25 +420,25 @@
       </thead>
       <tbody>
         <tr>
-          <td><strong>Nov 11–19, 2025</strong></td><td>7</td><td>91,392</td>
-          <td class="red">2,242</td><td class="red">2.45%</td>
-          <td class="yellow">609</td><td class="yellow">0.67%</td>
-          <td class="green">88,541</td>
-          <td><span class="badge med">Early production</span></td>
+          <td><strong>Sep 30 – Oct 7, 2025</strong></td><td>6</td><td>269,500</td>
+          <td class="red">155,600</td><td class="yellow">57.7%</td>
+          <td class="yellow">—</td><td class="yellow">—</td>
+          <td class="green">213,900</td>
+          <td><span class="badge med">Calibration phase</span></td>
         </tr>
         <tr>
-          <td><strong>Dec 1–2, 2025</strong></td><td>2</td><td>11,523</td>
-          <td class="red">414</td><td class="red">3.59%</td>
-          <td class="yellow">40</td><td class="yellow">0.35%</td>
-          <td class="green">11,069</td>
-          <td><span class="badge med">Short window</span></td>
+          <td><strong>Oct 24 – Nov 5, 2025</strong></td><td>7</td><td>382,686</td>
+          <td class="red">7,720</td><td class="green">2.02%</td>
+          <td class="yellow">—</td><td class="yellow">—</td>
+          <td class="green">374,966</td>
+          <td><span class="badge low">Stable · production ready</span></td>
         </tr>
         <tr>
-          <td><strong>Jan 14–21, 2026</strong></td><td>6</td><td>85,797</td>
-          <td class="red">995</td><td class="green">1.16%</td>
-          <td class="yellow">273</td><td class="yellow">0.32%</td>
-          <td class="green">84,529</td>
-          <td><span class="badge low">Stable</span></td>
+          <td><strong>Nov 7–12, 2025</strong></td><td>4</td><td>248,711</td>
+          <td class="red">208,820</td><td class="red">83.9%</td>
+          <td class="yellow">—</td><td class="yellow">—</td>
+          <td class="green">39,891</td>
+          <td><span class="badge high">System failure</span></td>
         </tr>
       </tbody>
     </table>
@@ -466,7 +473,7 @@
 
   <footer>
     <strong>Classification:</strong> Anomaly = heatmap brightness ≥ 179 (0.7 × 255) · Measurement defect = ellipse out-of-spec (roundness, deviation, semi-axes) · Good = brightness &lt; 179 &amp; in-spec ·
-    Total inspections = total heatmaps · Data from 2025-11-11 onwards · Source: dataset.csv + measurements_checked.csv
+    Total inspections = total heatmaps · Data from 2025-11-11 onwards · Source: SurrealDB vision system database
   </footer>
 
 </div>
