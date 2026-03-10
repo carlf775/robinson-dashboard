@@ -201,14 +201,12 @@
 {#if lightboxCard}
   {@const orig = import.meta.env.BASE_URL + 'rob-originals/' + lightboxCard.key + '.jpg'}
   {@const heat = import.meta.env.BASE_URL + 'rob-heatmaps/'  + lightboxCard.key + '.jpg'}
+  {@const over = import.meta.env.BASE_URL + 'rob-overlays/'  + lightboxCard.key + '.jpg'}
   <div class="lb" onclick={() => (lightboxCard = null)}>
     <div class="lb-card" onclick={(e) => e.stopPropagation()}>
       <img src={orig} alt="Original" />
       <img src={heat} alt="Heatmap" />
-      <div class="lb-overlay-wrap">
-        <img src={orig} alt="Overlay" />
-        <div class="red-overlay"></div>
-      </div>
+      <img src={over} alt="Overlay" />
       <div class="lb-meta">
         {lightboxCard.ts} · ANOMALY · Click outside to close
       </div>
@@ -529,21 +527,19 @@
   <div class="section">
     <h2>Anomaly Defect Gallery — {galleryCards.length} Samples</h2>
     <p class="chart-sub" style="margin-bottom:16px">
-      Each card: original capture (left) · inferno heatmap (centre) · original with heatmap overlay at 60% red opacity (right).
-      Click a card to enlarge. From degradation period Nov 7–12, 2025.
+      Each card: original capture · real model heatmap (36×36 score map, inferno colormap) · heatmap overlay blended on original.
+      Click a card to enlarge.
     </p>
     <div class="gallery-grid">
       {#each galleryCards as card}
         {@const orig = import.meta.env.BASE_URL + 'rob-originals/' + card.key + '.jpg'}
         {@const heat = import.meta.env.BASE_URL + 'rob-heatmaps/'  + card.key + '.jpg'}
+        {@const over = import.meta.env.BASE_URL + 'rob-overlays/'  + card.key + '.jpg'}
         <div class="gallery-card" onclick={() => (lightboxCard = card)}>
           <div class="gallery-imgs">
             <img src={orig} alt="Original" loading="lazy" />
             <img src={heat} alt="Heatmap"  loading="lazy" />
-            <div class="overlay-wrap">
-              <img src={orig} alt="Overlay" loading="lazy" />
-              <div class="red-tint"></div>
-            </div>
+            <img src={over} alt="Overlay"  loading="lazy" />
           </div>
           <div class="gallery-meta">
             <span class="gallery-ts">{card.ts}</span>
