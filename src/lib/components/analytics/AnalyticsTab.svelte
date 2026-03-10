@@ -199,16 +199,18 @@
 
 <!-- Lightbox -->
 {#if lightboxCard}
+  {@const orig = import.meta.env.BASE_URL + 'rob-originals/' + lightboxCard.key + '.jpg'}
+  {@const heat = import.meta.env.BASE_URL + 'rob-heatmaps/'  + lightboxCard.key + '.jpg'}
   <div class="lb" onclick={() => (lightboxCard = null)}>
     <div class="lb-card" onclick={(e) => e.stopPropagation()}>
-      <img src={lightboxCard.orig} alt="Original" />
-      <img src={lightboxCard.heat} alt="Heatmap" />
+      <img src={orig} alt="Original" />
+      <img src={heat} alt="Heatmap" />
       <div class="lb-overlay-wrap">
-        <img src={lightboxCard.heat} alt="Overlay" />
+        <img src={orig} alt="Overlay" />
         <div class="red-overlay"></div>
       </div>
       <div class="lb-meta">
-        {lightboxCard.ts} · Score: {lightboxCard.score} · Click outside to close
+        {lightboxCard.ts} · ANOMALY · Click outside to close
       </div>
     </div>
   </div>
@@ -525,25 +527,27 @@
 
   <!-- Anomaly Defect Gallery -->
   <div class="section">
-    <h2>Anomaly Defect Gallery — 50 Samples</h2>
+    <h2>Anomaly Defect Gallery — {galleryCards.length} Samples</h2>
     <p class="chart-sub" style="margin-bottom:16px">
-      Each card: original (left) · heatmap (centre) · heatmap overlay at 60% red opacity (right).
-      Click a card to enlarge. Sampled across all 23 production days, Nov 2025 – Feb 2026.
+      Each card: original capture (left) · inferno heatmap (centre) · original with heatmap overlay at 60% red opacity (right).
+      Click a card to enlarge. From degradation period Nov 7–12, 2025.
     </p>
     <div class="gallery-grid">
       {#each galleryCards as card}
+        {@const orig = import.meta.env.BASE_URL + 'rob-originals/' + card.key + '.jpg'}
+        {@const heat = import.meta.env.BASE_URL + 'rob-heatmaps/'  + card.key + '.jpg'}
         <div class="gallery-card" onclick={() => (lightboxCard = card)}>
           <div class="gallery-imgs">
-            <img src={card.orig} alt="Original" loading="lazy" />
-            <img src={card.heat} alt="Heatmap"  loading="lazy" />
+            <img src={orig} alt="Original" loading="lazy" />
+            <img src={heat} alt="Heatmap"  loading="lazy" />
             <div class="overlay-wrap">
-              <img src={card.heat} alt="Overlay" loading="lazy" />
+              <img src={orig} alt="Overlay" loading="lazy" />
               <div class="red-tint"></div>
             </div>
           </div>
           <div class="gallery-meta">
             <span class="gallery-ts">{card.ts}</span>
-            <span class="gallery-score">Score: {card.score}</span>
+            <span class="gallery-score">ANOMALY</span>
           </div>
         </div>
       {/each}
