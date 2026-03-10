@@ -301,12 +301,12 @@
     <div class="card">
       <div class="label">Measurement Defects</div>
       <div class="value yellow">{fmt(totalMeasurement)}</div>
-      <div class="sub">{measurementPct}% · ellipse out-of-spec</div>
+      <div class="sub">{measurementPct}% · N/A for Robinson system</div>
     </div>
     <div class="card">
       <div class="label">Good Parts</div>
       <div class="value green">{fmt(totalGood)}</div>
-      <div class="sub">{goodPct}% · brightness &lt; 179 &amp; in-spec</div>
+      <div class="sub">{goodPct}% · anomaly score &lt; threshold</div>
     </div>
   </div>
 
@@ -555,8 +555,8 @@
   </div>
 
   <footer>
-    <strong>Classification:</strong> Anomaly = heatmap brightness ≥ 179 (0.7 × 255) · Measurement defect = ellipse out-of-spec (roundness, deviation, semi-axes) · Good = brightness &lt; 179 &amp; in-spec ·
-    Total inspections = total heatmaps · Data from 2025-11-11 onwards · Source: SurrealDB vision system database
+    <strong>Classification:</strong> Anomaly = brightness score above threshold · Good = score below threshold · No measurement defect category in Robinson CV1 system ·
+    Total inspections = total processed images · Sep 30 – Nov 12, 2025 · Source: SurrealDB robinson.test · Robinson Packaging Denmark
   </footer>
 
 </div>

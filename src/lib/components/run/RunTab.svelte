@@ -223,7 +223,7 @@
         title="Demo preview"
       >
         <span class="tab-dot {mockActive ? 'dot-live' : ''}"></span>
-        <span class="tab-name">AVK-Plast · SAM3 v2</span>
+        <span class="tab-name">Robinson Packaging · CV1 v1</span>
         {#if mockActive}
           <span class="tab-badge">LIVE</span>
         {:else}
@@ -301,7 +301,7 @@
         <div class="batch-meta">
           <div class="batch-field">
             <div class="batch-field-label">Batch ID</div>
-            <div class="batch-field-value">AVK-Plast · Run #{Math.floor(mockFrames / 500) + 1}</div>
+            <div class="batch-field-value">Robinson Packaging · Run #{Math.floor(mockFrames / 500) + 1}</div>
           </div>
           <div class="batch-field">
             <div class="batch-field-label">Article ID</div>
@@ -560,7 +560,7 @@
             <div class="program-card-icon" style="color:#70c1a3">
               <BrainIcon class="size-5" />
             </div>
-            <div class="program-card-name">AVK-Plast · SAM3 v2</div>
+            <div class="program-card-name">Robinson Packaging · CV1 v1</div>
             <div class="program-card-sub">Demo · Anomaly Detection</div>
             {#if mockActive}
               <div class="program-card-badge">Live</div>
