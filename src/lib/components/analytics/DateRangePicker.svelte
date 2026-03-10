@@ -26,7 +26,7 @@
     { label: 'Last 7 days',  fn: () => lastN(7) },
     { label: 'Last 30 days', fn: () => lastN(30) },
     { label: 'Last 90 days', fn: () => lastN(90) },
-    { label: 'Last 12 months', fn: () => lastN(365) },
+    { label: 'Last 12 months', fn: () => allTime() },
     { label: 'All time',     fn: () => allTime() },
   ];
 
@@ -48,7 +48,7 @@
     tempStart = fmt(start); tempEnd = fmt(end); selecting = 'start';
   }
   function allTime() {
-    tempStart = '2025-11-11'; tempEnd = '2026-03-03'; selecting = 'start';
+    tempStart = '2025-09-30'; tempEnd = '2025-11-12'; selecting = 'start';
   }
 
   function openPicker() {
