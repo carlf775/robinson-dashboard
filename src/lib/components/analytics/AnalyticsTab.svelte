@@ -528,7 +528,7 @@
     <h2>Anomaly Defect Gallery — {galleryCards.length} Samples</h2>
     <p class="chart-sub" style="margin-bottom:16px">
       Each card: original capture · real model heatmap (36×36 score map, inferno colormap) · heatmap overlay blended on original.
-      Click a card to enlarge.
+      Click a card to enlarge. Sep 30 – Nov 12, 2025 · sorted chronologically · confidence ≥ 0.70.
     </p>
     <div class="gallery-grid">
       {#each galleryCards as card}
