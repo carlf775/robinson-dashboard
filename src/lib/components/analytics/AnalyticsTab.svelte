@@ -1,10 +1,28 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { galleryCards } from './galleryData';
   import { themeStore } from '$lib/stores/theme.svelte';
   import DateRangePicker from './DateRangePicker.svelte';
 
   const dark = $derived(themeStore.theme === 'dark');
   let lightboxCard = $state<typeof galleryCards[0] | null>(null);
+
+  function navigateGallery(dir: 1 | -1) {
+    if (!lightboxCard) return;
+    const idx = galleryCards.indexOf(lightboxCard as typeof galleryCards[number]);
+    lightboxCard = galleryCards[(idx + dir + galleryCards.length) % galleryCards.length];
+  }
+
+  onMount(() => {
+    function onKeydown(e: KeyboardEvent) {
+      if (!lightboxCard) return;
+      if (e.key === 'ArrowRight') navigateGallery(1);
+      else if (e.key === 'ArrowLeft') navigateGallery(-1);
+      else if (e.key === 'Escape') lightboxCard = null;
+    }
+    window.addEventListener('keydown', onKeydown);
+    return () => window.removeEventListener('keydown', onKeydown);
+  });
   let showEmailDialog = $state(false);
   let emailTo = $state('');
   let emailSending = $state(false);
@@ -202,15 +220,18 @@
   {@const orig = import.meta.env.BASE_URL + 'rob-originals/' + lightboxCard.key + '.jpg'}
   {@const heat = import.meta.env.BASE_URL + 'rob-heatmaps/'  + lightboxCard.key + '.jpg'}
   {@const over = import.meta.env.BASE_URL + 'rob-overlays/'  + lightboxCard.key + '.jpg'}
+  {@const lbIdx = galleryCards.indexOf(lightboxCard as typeof galleryCards[number])}
   <div class="lb" onclick={() => (lightboxCard = null)}>
+    <button class="lb-nav lb-prev" onclick={(e) => { e.stopPropagation(); navigateGallery(-1); }}>‹</button>
     <div class="lb-card" onclick={(e) => e.stopPropagation()}>
       <img src={orig} alt="Original" />
       <img src={heat} alt="Heatmap" />
       <img src={over} alt="Overlay" />
       <div class="lb-meta">
-        {lightboxCard.ts} · ANOMALY · Click outside to close
+        {lightboxCard.ts} · ANOMALY · {lbIdx + 1} / {galleryCards.length} · ← → to navigate · Esc to close
       </div>
     </div>
+    <button class="lb-nav lb-next" onclick={(e) => { e.stopPropagation(); navigateGallery(1); }}>›</button>
   </div>
 {/if}
 
@@ -762,8 +783,15 @@
   .lb {
     display: flex; position: fixed; inset: 0; z-index: 9999;
     background: rgba(0,0,0,0.88); align-items: center; justify-content: center;
-    cursor: zoom-out; padding: 24px;
+    cursor: zoom-out; padding: 24px; gap: 16px;
   }
+  .lb-nav {
+    flex-shrink: 0; background: rgba(255,255,255,0.1); border: none; color: #fff;
+    font-size: 48px; line-height: 1; width: 56px; height: 80px; border-radius: 8px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s; user-select: none;
+  }
+  .lb-nav:hover { background: rgba(255,255,255,0.22); }
   .lb-card {
     display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;
     max-width: 90vw; cursor: default;
