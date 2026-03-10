@@ -14,6 +14,9 @@
   let startDate = $state('2025-09-30');
   let endDate   = $state('2025-11-12');
 
+  // ── Degradation cutline ───────────────────────────────────────────────────
+  const DEGRADATION_DATE = '2025-11-07'; // first day of system failure
+
   // ── Robinson Vision System V1 data ────────────────────────────────────────
   // Dates: all production days Sep 30 – Nov 12, 2025
   const DATES   = ["2025-09-30","2025-10-01","2025-10-02","2025-10-03","2025-10-06","2025-10-07","2025-10-23","2025-10-24","2025-10-28","2025-10-29","2025-10-30","2025-11-03","2025-11-04","2025-11-05","2025-11-07","2025-11-10","2025-11-11","2025-11-12"];
@@ -46,6 +49,9 @@
   const fD_G     = $derived(filteredIdx.map(i => D_G[i]));
   const fROLLING = $derived(filteredIdx.map(i => ROLLING[i]));
 
+  // Index in filtered data where degradation begins (first date >= DEGRADATION_DATE)
+  const degradationFilteredIdx = $derived(fDATES.findIndex(d => d >= DEGRADATION_DATE));
+
   // ── KPI totals ────────────────────────────────────────────────────────────
   const totalAnomaly     = $derived(fD_A.reduce((a, b) => a + b, 0));
   const totalMeasurement = $derived(fD_B.reduce((a, b) => a + b, 0));
@@ -67,9 +73,41 @@
   function cdy(v: number, max: number) { return DPY + (1 - v / max) * (DH - DPY - DPB); }
   function cbarH(v: number, max: number) { return (v / max) * (DH - DPY - DPB); }
 
+  // Dynamic Y-axis ticks for inspections chart
+  const yAxisTicks = $derived(() => {
+    const niceMax = chartMax <= 0 ? 1 : chartMax;
+    const magnitude = Math.pow(10, Math.floor(Math.log10(niceMax)));
+    const step = niceMax / magnitude <= 2 ? magnitude / 2 :
+                 niceMax / magnitude <= 5 ? magnitude : magnitude * 2;
+    const ticks: number[] = [];
+    for (let v = 0; v <= niceMax * 1.05; v += step) ticks.push(v);
+    return ticks;
+  });
+
   const rollingLine = $derived(
     fDATES.length > 1
       ? fDATES.map((_, i) => `${cdx(i, fDATES.length) + barW / 2},${cdy(fROLLING[i], chartMaxR * 1.15)}`).join(' ')
+      : ''
+  );
+
+  // Rolling line split into stable and degradation segments for separate coloring
+  const rollingStablePts  = $derived(
+    degradationFilteredIdx > 0
+      ? fDATES.slice(0, degradationFilteredIdx).map((_, i) => `${cdx(i, fDATES.length) + barW / 2},${cdy(fROLLING[i], chartMaxR * 1.15)}`).join(' ')
+      : (degradationFilteredIdx === -1 ? rollingLine : '')
+  );
+  const rollingDegradPts  = $derived(
+    degradationFilteredIdx >= 0
+      ? fDATES.slice(degradationFilteredIdx).map((_, i) => {
+          const gi = degradationFilteredIdx + i;
+          return `${cdx(gi, fDATES.length) + barW / 2},${cdy(fROLLING[gi], chartMaxR * 1.15)}`;
+        }).join(' ')
+      : ''
+  );
+  // Bridge point connecting stable line to degradation line
+  const bridgePts = $derived(
+    degradationFilteredIdx > 0 && degradationFilteredIdx < fDATES.length
+      ? `${cdx(degradationFilteredIdx - 1, fDATES.length) + barW / 2},${cdy(fROLLING[degradationFilteredIdx - 1], chartMaxR * 1.15)} ${cdx(degradationFilteredIdx, fDATES.length) + barW / 2},${cdy(fROLLING[degradationFilteredIdx], chartMaxR * 1.15)}`
       : ''
   );
 
@@ -275,37 +313,72 @@
     <h2>Daily Inspection Results &amp; Anomaly Rate Trend</h2>
     <div class="chart-scroll">
       <svg viewBox="0 0 {DW} {DH}" width="{DW}" style="min-width:{DW}px;height:auto;display:block">
-        <!-- Y-axis gridlines (left: inspections) -->
-        {#each [0, 5000, 10000, 15000, 20000] as v}
+        <!-- Degradation zone: red tint background, drawn first (behind bars) -->
+        {#if degradationFilteredIdx >= 0}
+          {@const degX = cdx(degradationFilteredIdx, fDATES.length)}
+          <rect x={degX - 4} y={DPY} width={DW - degX - 6} height={DH - DPY - DPB}
+            fill="rgba(229,115,115,0.06)" />
+        {/if}
+
+        <!-- Y-axis gridlines (left: inspections) — dynamic ticks -->
+        {#each yAxisTicks() as v}
           {@const y = cdy(v, chartMax)}
-          <line x1={DPX} y1={y} x2={DW - 10} y2={y} stroke="var(--border)" stroke-width="1"/>
-          <text x={DPX - 4} y={y + 4} text-anchor="end" font-size="9" fill="var(--text2)" font-family="system-ui">{v === 0 ? '0' : (v/1000)+'k'}</text>
+          {#if y >= DPY && y <= DH - DPB + 2}
+            <line x1={DPX} y1={y} x2={DW - 10} y2={y} stroke="var(--border)" stroke-width="1"/>
+            <text x={DPX - 4} y={y + 4} text-anchor="end" font-size="9" fill="var(--text2)" font-family="system-ui">
+              {v === 0 ? '0' : v >= 1000 ? (v/1000).toFixed(0)+'k' : v}
+            </text>
+          {/if}
         {/each}
 
-        <!-- Stacked bars -->
+        <!-- Stacked bars — degradation bars get distinct styling -->
         {#each fDATES as _, i}
           {@const x = cdx(i, fDATES.length)}
           {@const gH = cbarH(fD_G[i], chartMax)}
           {@const aH = cbarH(fD_A[i], chartMax)}
           {@const bH = cbarH(fD_B[i], chartMax)}
           {@const baseY = DH - DPB}
+          {@const isDeg = degradationFilteredIdx >= 0 && i >= degradationFilteredIdx}
           <!-- Good (bottom) -->
-          <rect x={x} y={baseY - gH} width={barW} height={gH} fill="rgba(112,193,163,0.45)"/>
+          <rect x={x} y={baseY - gH} width={barW} height={gH}
+            fill={isDeg ? 'rgba(229,115,115,0.18)' : 'rgba(112,193,163,0.45)'}/>
           <!-- Measurement (middle) -->
           <rect x={x} y={baseY - gH - bH} width={barW} height={bH} fill="rgba(251,191,36,0.55)"/>
           <!-- Anomaly (top) -->
-          <rect x={x} y={baseY - gH - bH - aH} width={barW} height={aH} fill="rgba(229,115,115,0.85)"/>
-          <text x={x + barW/2} y={DH - 38} text-anchor="end" font-size="8" fill="var(--text2)" font-family="system-ui"
+          <rect x={x} y={baseY - gH - bH - aH} width={barW} height={aH}
+            fill={isDeg ? 'rgba(229,115,115,0.95)' : 'rgba(229,115,115,0.75)'}/>
+          <text x={x + barW/2} y={DH - 38} text-anchor="end" font-size="8"
+            fill={isDeg ? 'rgba(229,115,115,0.8)' : 'var(--text2)'} font-family="system-ui"
             transform="rotate(-55,{x + barW/2},{DH - 38})">{fDATES[i].slice(5)}</text>
         {/each}
 
-        <!-- Rolling anomaly rate line (right axis) -->
-        {#if rollingLine}
-          <polyline points={rollingLine} fill="none" stroke="#70c1a3" stroke-width="2.5" stroke-linejoin="round"/>
+        <!-- Rolling anomaly rate line: green for stable, red for degradation -->
+        {#if rollingStablePts}
+          <polyline points={rollingStablePts} fill="none" stroke="#70c1a3" stroke-width="2.5" stroke-linejoin="round"/>
+        {/if}
+        {#if bridgePts}
+          <polyline points={bridgePts} fill="none" stroke="#e57373" stroke-width="2" stroke-dasharray="4 3" stroke-linejoin="round" opacity="0.6"/>
+        {/if}
+        {#if rollingDegradPts}
+          <polyline points={rollingDegradPts} fill="none" stroke="#e57373" stroke-width="2.5" stroke-linejoin="round"/>
         {/if}
         {#each fDATES as _, i}
-          <circle cx={cdx(i, fDATES.length) + barW/2} cy={cdy(fROLLING[i], chartMaxR * 1.15)} r="3" fill="#70c1a3"/>
+          {@const isDeg = degradationFilteredIdx >= 0 && i >= degradationFilteredIdx}
+          <circle cx={cdx(i, fDATES.length) + barW/2} cy={cdy(fROLLING[i], chartMaxR * 1.15)}
+            r="3.5" fill={isDeg ? '#e57373' : '#70c1a3'}/>
         {/each}
+
+        <!-- Cutline: vertical dashed line at degradation start -->
+        {#if degradationFilteredIdx >= 0}
+          {@const degX = cdx(degradationFilteredIdx, fDATES.length)}
+          <line x1={degX - 4} y1={DPY} x2={degX - 4} y2={DH - DPB}
+            stroke="#e57373" stroke-width="1.5" stroke-dasharray="6 3" opacity="0.7"/>
+          <!-- Label pill -->
+          <rect x={degX} y={DPY + 2} width="130" height="28" rx="4"
+            fill="rgba(229,115,115,0.12)" stroke="rgba(229,115,115,0.35)" stroke-width="1"/>
+          <text x={degX + 8} y={DPY + 13} font-size="8.5" fill="#e57373" font-family="system-ui" font-weight="700">⚠ SYSTEM DEGRADATION</text>
+          <text x={degX + 8} y={DPY + 24} font-size="7.5" fill="rgba(229,115,115,0.7)" font-family="system-ui">Nov 7 → anomaly rate ↑ 56%</text>
+        {/if}
 
         <!-- Right Y axis label -->
         <text x={DW - 4} y={DPY + 10} text-anchor="end" font-size="9" fill="#70c1a3" font-family="system-ui">Rate %</text>
@@ -433,11 +506,17 @@
           <td class="green">374,966</td>
           <td><span class="badge low">Stable · production ready</span></td>
         </tr>
-        <tr>
+        <!-- Degradation cutline row -->
+        <tr class="cutline-row">
+          <td colspan="9">
+            <span class="cutline-label">⚠ System degradation starts Nov 7 — anomaly rate jumped from 1.2% → 56.9% overnight. Probable cause: camera/lighting change.</span>
+          </td>
+        </tr>
+        <tr class="degradation-row">
           <td><strong>Nov 7–12, 2025</strong></td><td>4</td><td>248,711</td>
           <td class="red">208,820</td><td class="red">83.9%</td>
           <td class="yellow">—</td><td class="yellow">—</td>
-          <td class="green">39,891</td>
+          <td class="red">39,891</td>
           <td><span class="badge high">System failure</span></td>
         </tr>
       </tbody>
@@ -628,6 +707,24 @@
   .badge.high { background: rgba(255,77,106,0.15); color: var(--red); }
   .badge.med  { background: rgba(251,191,36,0.15);  color: var(--yellow); }
   .badge.low  { background: rgba(52,211,153,0.15);  color: var(--green); }
+
+  /* Degradation cutline in table */
+  .cutline-row td {
+    padding: 0; border-bottom: none; border-top: none;
+  }
+  .cutline-label {
+    display: block;
+    padding: 7px 14px;
+    background: rgba(229,115,115,0.08);
+    border-top: 1.5px dashed rgba(229,115,115,0.5);
+    border-bottom: 1.5px dashed rgba(229,115,115,0.5);
+    color: rgba(229,115,115,0.9);
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .degradation-row td {
+    background: rgba(229,115,115,0.04);
+  }
 
   /* ── Gallery ───────────────────────────────────────────────────────────── */
   .gallery-grid {
