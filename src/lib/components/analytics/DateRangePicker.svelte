@@ -33,22 +33,25 @@
   function fmt(d: Date) {
     return d.toISOString().slice(0, 10);
   }
+  function applyPreset(s: string, e: string) {
+    startDate = s; endDate = e;
+    tempStart = s; tempEnd = e;
+    open = false;
+  }
   function today() {
-    const d = fmt(new Date());
-    tempStart = d; tempEnd = d; selecting = 'start';
+    const d = fmt(new Date()); applyPreset(d, d);
   }
   function yesterday() {
     const d = new Date(); d.setDate(d.getDate() - 1);
-    const s = fmt(d);
-    tempStart = s; tempEnd = s; selecting = 'start';
+    const s = fmt(d); applyPreset(s, s);
   }
   function lastN(n: number) {
     const end = new Date();
     const start = new Date(); start.setDate(start.getDate() - n + 1);
-    tempStart = fmt(start); tempEnd = fmt(end); selecting = 'start';
+    applyPreset(fmt(start), fmt(end));
   }
   function allTime() {
-    tempStart = '2025-09-30'; tempEnd = '2025-11-12'; selecting = 'start';
+    applyPreset('2025-09-30', '2025-11-12');
   }
 
   function openPicker() {
