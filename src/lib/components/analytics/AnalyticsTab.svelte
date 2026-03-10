@@ -5,20 +5,21 @@
   import DateRangePicker from './DateRangePicker.svelte';
 
   const dark = $derived(themeStore.theme === 'dark');
-  let lightboxCard = $state<typeof galleryCards[0] | null>(null);
+  let lightboxIdx = $state<number | null>(null);
+  const lightboxCard = $derived(lightboxIdx !== null ? galleryCards[lightboxIdx] : null);
 
+  function openLightbox(idx: number) { lightboxIdx = idx; }
   function navigateGallery(dir: 1 | -1) {
-    if (!lightboxCard) return;
-    const idx = galleryCards.indexOf(lightboxCard as typeof galleryCards[number]);
-    lightboxCard = galleryCards[(idx + dir + galleryCards.length) % galleryCards.length];
+    if (lightboxIdx === null) return;
+    lightboxIdx = (lightboxIdx + dir + galleryCards.length) % galleryCards.length;
   }
 
   onMount(() => {
     function onKeydown(e: KeyboardEvent) {
-      if (!lightboxCard) return;
+      if (lightboxIdx === null) return;
       if (e.key === 'ArrowRight') navigateGallery(1);
       else if (e.key === 'ArrowLeft') navigateGallery(-1);
-      else if (e.key === 'Escape') lightboxCard = null;
+      else if (e.key === 'Escape') lightboxIdx = null;
     }
     window.addEventListener('keydown', onKeydown);
     return () => window.removeEventListener('keydown', onKeydown);
@@ -220,15 +221,14 @@
   {@const orig = import.meta.env.BASE_URL + 'rob-originals/' + lightboxCard.key + '.jpg'}
   {@const heat = import.meta.env.BASE_URL + 'rob-heatmaps/'  + lightboxCard.key + '.jpg'}
   {@const over = import.meta.env.BASE_URL + 'rob-overlays/'  + lightboxCard.key + '.jpg'}
-  {@const lbIdx = galleryCards.indexOf(lightboxCard as typeof galleryCards[number])}
-  <div class="lb" onclick={() => (lightboxCard = null)}>
+  <div class="lb" onclick={() => (lightboxIdx = null)}>
     <button class="lb-nav lb-prev" onclick={(e) => { e.stopPropagation(); navigateGallery(-1); }}>‹</button>
     <div class="lb-card" onclick={(e) => e.stopPropagation()}>
       <img src={orig} alt="Original" />
       <img src={heat} alt="Heatmap" />
       <img src={over} alt="Overlay" />
       <div class="lb-meta">
-        {lightboxCard.ts} · ANOMALY · {lbIdx + 1} / {galleryCards.length} · ← → to navigate · Esc to close
+        {lightboxCard.ts} · ANOMALY · {lightboxIdx! + 1} / {galleryCards.length} · ← → to navigate · Esc to close
       </div>
     </div>
     <button class="lb-nav lb-next" onclick={(e) => { e.stopPropagation(); navigateGallery(1); }}>›</button>
@@ -552,11 +552,11 @@
       Click a card to enlarge. Sep 30 – Nov 12, 2025 · sorted chronologically · confidence ≥ 0.70.
     </p>
     <div class="gallery-grid">
-      {#each galleryCards as card}
+      {#each galleryCards as card, idx}
         {@const orig = import.meta.env.BASE_URL + 'rob-originals/' + card.key + '.jpg'}
         {@const heat = import.meta.env.BASE_URL + 'rob-heatmaps/'  + card.key + '.jpg'}
         {@const over = import.meta.env.BASE_URL + 'rob-overlays/'  + card.key + '.jpg'}
-        <div class="gallery-card" onclick={() => (lightboxCard = card)}>
+        <div class="gallery-card" onclick={() => openLightbox(idx)}>
           <div class="gallery-imgs">
             <img src={orig} alt="Original" loading="lazy" />
             <img src={heat} alt="Heatmap"  loading="lazy" />
